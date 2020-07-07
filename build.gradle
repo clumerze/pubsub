@@ -1,0 +1,54 @@
+plugins {
+	id 'base'
+	id 'org.springframework.boot' version '2.3.1.RELEASE' apply false
+	id 'io.spring.dependency-management' version '1.0.9.RELEASE' apply false
+}
+
+subprojects {
+	apply plugin: 'java'
+	apply plugin: 'maven-publish'
+	apply plugin: 'org.springframework.boot'
+	apply plugin: 'io.spring.dependency-management'
+
+	sourceCompatibility = JavaVersion.VERSION_11
+
+	group = 'com.intech.testing'
+	version = '0.0.1-SNAPSHOT'
+
+	configurations {
+		compileOnly {
+			extendsFrom annotationProcessor
+		}
+	}
+
+	jar {
+		enabled true
+	}
+
+	repositories {
+		mavenCentral()
+		mavenLocal()
+	}
+
+	ext {
+		set('springCloudVersion', "Hoxton.SR6")
+	}
+
+	dependencies {
+		compileOnly 'org.projectlombok:lombok'
+		annotationProcessor 'org.projectlombok:lombok'
+
+		testCompile 'org.projectlombok:lombok'
+		testAnnotationProcessor 'org.projectlombok:lombok'
+	}
+
+	dependencyManagement {
+		imports {
+			mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+		}
+	}
+
+	test {
+		useJUnitPlatform()
+	}
+}

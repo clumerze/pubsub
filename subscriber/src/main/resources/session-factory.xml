@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:c="http://www.springframework.org/schema/c" xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd     http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd http://www.springframework.org/schema/aop https://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <util:properties id="dataSourceProperties" location="classpath:dataSource-${dbProfile}.properties"/>
+    <bean id="dataSource" class="com.zaxxer.hikari.HikariDataSource" primary="true"
+          c:configuration="#{new com.zaxxer.hikari.HikariConfig(dataSourceProperties)}"/>
+
+    <util:properties id="hibernateProperties" location="classpath:hibernate-${dbProfile}.properties"/>
+    <bean id="sessionFactory" name="entityManagerFactory"
+          class="org.springframework.orm.hibernate5.LocalSessionFactoryBean" primary="true"
+          p:dataSource-ref="dataSource"
+          p:hibernateProperties-ref="hibernateProperties"
+          p:packagesToScan="com.intech.testing.subscriber.repository.data"/>
+
+    <bean id="transactionManager"
+          class="org.springframework.orm.hibernate5.HibernateTransactionManager"
+          primary="true"
+          p:sessionFactory-ref="sessionFactory"
+          p:dataSource-ref="dataSource"/>
+
+    <tx:advice id="transactionAdvice">
+        <tx:attributes>
+            <tx:method name="get*" read-only="true"/>
+            <tx:method name="*list" read-only="true"/>
+            <tx:method name="*"/>
+        </tx:attributes>
+    </tx:advice>
+
+    <aop:config proxy-target-class="true">
+        <aop:pointcut id="isMessageRepository"
+                      expression="target(com.intech.testing.subscriber.repository.MessageRepository)"/>
+        <aop:advisor id="daoTransactionAdvisor"
+                     pointcut-ref="isMessageRepository"
+                     advice-ref="transactionAdvice"/>
+    </aop:config>
+</beans>
